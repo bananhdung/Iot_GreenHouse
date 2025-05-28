@@ -213,6 +213,12 @@ An IoT solution for smart greenhouse monitoring and control, powered by an Ardui
 
 ---
 
+## 📜 License
+MIT LicenseFree to use and modify for non-commercial purposes. See LICENSE for details.
+
+## 📩 Contact
+For questions, suggestions, or support:📧 bananhdung2003@gmail.comGitHub: bananhdung
+
 ## 📈 System Flowchart
 
 Below is a flowchart illustrating the system's data flow and component interactions, rendered using Mermaid:
@@ -298,12 +304,4 @@ graph TD
     classDef comm fill:lightblue,stroke:#333,stroke-width:1px
     classDef actuator fill:orange,stroke:#333,stroke-width:1px
     classDef cloud fill:lightgrey,stroke:#333,stroke-width:1px
-
-
-## 📜 License
-MIT LicenseFree to use and modify for non-commercial purposes. See LICENSE for details.
-
-## 📩 Contact
-For questions, suggestions, or support:📧 bananhdung2003@gmail.comGitHub: bananhdung
-
 
