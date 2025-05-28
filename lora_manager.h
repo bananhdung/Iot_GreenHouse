@@ -4,6 +4,7 @@
 #include <LoRa.h>
 #include <SPI.h>
 #include "config.h"
+#include "blynk.h"
 
 extern char packetBuffer[32];
 extern int packetSize, countpacket;
@@ -52,6 +53,7 @@ void parseLoRaMessage(const char *data) {
       sensorLight = l; sensorAQI = a; sensorTVOC = tv; sensorCO2 = c;
       xSemaphoreGive(sensorMutex);
     }
+    sendSensorDataToBlynk();
     countpacket++;
     Serial.printf("[LoRa] Temp: %.1f°C, Hum: %.1f%%, Light: %d, AQI: %d, TVOC: %d, CO2: %d, Packet: %d\n",
                  sensorTemp, sensorHum, sensorLight, sensorAQI, sensorTVOC, sensorCO2, countpacket);

@@ -1,9 +1,15 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#include <Arduino.h>
 #include <freertos/semphr.h>
 
-enum WiFiState { WIFI_IDLE, WIFI_CONNECTING, WIFI_CONNECTED, WIFI_ACCESS_POINT };
+enum WiFiState {
+  WIFI_IDLE,
+  WIFI_CONNECTING,
+  WIFI_CONNECTED,
+  WIFI_ACCESS_POINT
+};
 
 const long LORA_FREQ = 433E6;
 const int CS_PIN = 5;
@@ -12,12 +18,12 @@ const int IRQ_PIN = 2;
 const int FAN_RELAY_PIN = 25;
 const uint8_t PCF8574_ADDRESS = 0x20;
 
-#define RELAY_LIGHTING 0
+#define RELAY_AIR 0
 #define RELAY_FAN 1
 #define RELAY_HUMIDIFIER 2
-#define RELAY_AIR_PURIFIER 3
-#define RELAY_CO2_SYSTEM 4
-#define RELAY_AIR 5
+#define RELAY_LIGHTING 3
+#define RELAY_AIR_PURIFIER 4
+#define RELAY_CO2_SYSTEM 5
 
 const unsigned long FAN_ON_TIME = 7200000UL;
 const unsigned long FAN_OFF_TIME = 1800000UL;
@@ -31,6 +37,11 @@ struct RelayTimer {
   int endHour;
   int endMinute;
   bool enabled;
+};
+
+struct RelayAutoState {
+  bool active;
+  unsigned long startTime;
 };
 
 extern bool loraInitialized;
@@ -55,6 +66,9 @@ extern WiFiState wifiState;
 extern unsigned long wifiConnectStart;
 extern bool manualLocked;
 extern String autoMessages[6];
+extern RelayAutoState relayAutoStates[6];
+extern bool nightLightingActive;
+extern unsigned long nightLightingStart;
 extern String ssid;
 extern String password;
 

@@ -6,13 +6,11 @@
 #include "config.h"
 #include "relay_control.h"
 
-// Blynk Config
 #define BLYNK_TEMPLATE_ID "TMPL6x9z1zKQW"
 #define BLYNK_TEMPLATE_NAME "ESP32"
 #define BLYNK_AUTH_TOKEN "6Mt-nm7qmf_62JfNUtDExlLvBMfPjQP1"
 #include <BlynkSimpleEsp32.h>
 
-// External Variables
 extern float sensorTemp, sensorHum;
 extern int sensorLight, sensorAQI, sensorTVOC, sensorCO2;
 extern bool relayStates[6];
@@ -21,12 +19,10 @@ extern SemaphoreHandle_t sensorMutex;
 extern RelayTimer relayTimers[6];
 extern bool manualLocked;
 
-// Internal Variables
 BlynkTimer timer;
 bool blynkConnected = false;
 const unsigned long BLYNK_SEND_INTERVAL = 5000;
 
-// Sync to Blynk
 void syncToBlynk(bool fullSync = true) {
   if (!blynkConnected || !sensorMutex) return;
   if (xSemaphoreTake(sensorMutex, pdMS_TO_TICKS(10))) {
@@ -37,7 +33,6 @@ void syncToBlynk(bool fullSync = true) {
       Blynk.virtualWrite(V3, sensorAQI);
       Blynk.virtualWrite(V4, sensorTVOC);
       Blynk.virtualWrite(V5, sensorCO2);
-      Blynk.virtualWrite(V12, mode == 1 ? "MANUAL" : "AUTO");
       Blynk.virtualWrite(V13, mode);
     }
     for (int i = 0; i < 6; i++) Blynk.virtualWrite(V20 + i, relayStates[i]);
@@ -46,12 +41,38 @@ void syncToBlynk(bool fullSync = true) {
   } else Serial.println("[Blynk] Timeout Mutex");
 }
 
+void sendSensorDataToBlynk() {
+  float t, h;
+  int li, aqi, tvoc, co2;
+  if (xSemaphoreTake(sensorMutex, pdMS_TO_TICKS(10))) {
+    t = sensorTemp;
+    h = sensorHum;
+    li = sensorLight;
+    aqi = sensorAQI;
+    tvoc = sensorTVOC;
+    co2 = sensorCO2;
+    xSemaphoreGive(sensorMutex);
+  } else {
+    Serial.println("[Blynk] Timeout khi truy cập sensorMutex");
+    return;
+  }
+  Blynk.virtualWrite(V0, t);
+  Blynk.virtualWrite(V1, h);
+  Blynk.virtualWrite(V2, li);
+  Blynk.virtualWrite(V3, aqi);
+  Blynk.virtualWrite(V4, tvoc);
+  Blynk.virtualWrite(V5, co2);
+  Serial.println("[Blynk] Đã gửi dữ liệu cảm biến");
+}
+
+
 void initializeBlynk() {
   Serial.println("[Blynk] Init");
-  Blynk.begin(BLYNK_AUTH_TOKEN,ssid.c_str(), password.c_str());
-  timer.setInterval(BLYNK_SEND_INTERVAL, []() { syncToBlynk(); });
+  Blynk.begin(BLYNK_AUTH_TOKEN, ssid.c_str(), password.c_str());
+  syncToBlynk(); 
   Serial.println("[Blynk] Setup done");
 }
+
 
 void notifyBlynkRelayChange(int relay, bool state) {
   if (xSemaphoreTake(sensorMutex, pdMS_TO_TICKS(10))) {
@@ -81,25 +102,15 @@ BLYNK_WRITE_DEFAULT() {
       relayStates[relay] = value;
       syncToBlynk(false);
       xSemaphoreGive(sensorMutex);
-      Serial.printf("[Blynk] Relay %d: %s\n", relay, value ? "ON" : "OFF");
+      Serial.printf("[Blynk] Rơ-le %d: %s qua Blynk\n", relay, value ? "ON" : "OFF");
     }
-  } else Serial.println("[Blynk] Relay control locked or auto mode");
-}
-
-BLYNK_WRITE(V12) {
-  if (xSemaphoreTake(sensorMutex, pdMS_TO_TICKS(10))) {
-    String value = param.asStr();
-    mode = (value == "MANUAL") ? 1 : (value == "AUTO") ? 0 : mode;
-    syncToBlynk();
-    xSemaphoreGive(sensorMutex);
-    Serial.printf("[Blynk] State: %s\n", value.c_str());
-  }
+  } else Serial.println("[Blynk] Điều khiển rơ-le bị khóa hoặc ở chế độ tự động");
 }
 
 BLYNK_WRITE(V13) {
   if (xSemaphoreTake(sensorMutex, pdMS_TO_TICKS(10))) {
     mode = param.asInt();
-    syncToBlynk();
+    Blynk.virtualWrite(V12, mode == 1 ? "MANUAL" : "AUTO");
     xSemaphoreGive(sensorMutex);
     Serial.printf("[Blynk] Mode: %s\n", mode == 1 ? "MANUAL" : "AUTO");
   }

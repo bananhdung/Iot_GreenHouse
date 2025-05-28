@@ -32,15 +32,16 @@ void handleRelayData() {
 }
 
 void handleSetRelay() {
-  if (!server.hasArg("relay") || !server.hasArg("state")) return server.send(400, "text/plain", "Missing parameters");
+  if (!server.hasArg("relay") || !server.hasArg("state")) return server.send(400, "text/plain", "Thiếu tham số");
   int relay = server.arg("relay").toInt();
   bool state = server.arg("state").toInt();
-  if (mode != 1 || manualLocked || relay < 0 || relay >= 6) return server.send(403, "text/plain", "Manual mode or lock active");
+  if (mode != 1 || manualLocked || relay < 0 || relay >= 6) return server.send(403, "text/plain", "Chế độ thủ công hoặc khóa đang bật");
   if (!xSemaphoreTake(sensorMutex, pdMS_TO_TICKS(10))) return sendMutexError();
   controlRelay(relay, state);
   relayStates[relay] = state;
   notifyBlynkRelayChange(relay, state);
   xSemaphoreGive(sensorMutex);
+  Serial.printf("[Web] Rơ-le %d: %s qua Web\n", relay, state ? "ON" : "OFF");
   server.send(200, "text/plain", "OK");
 }
 

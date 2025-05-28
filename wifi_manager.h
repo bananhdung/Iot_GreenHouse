@@ -40,15 +40,12 @@ void initWiFi() {
   WiFi.mode(WIFI_MODE_APSTA);
   startAP(); 
   Serial.println("[WIFI] AP ON - IP: " + WiFi.softAPIP().toString());
-
   loadWiFiCredentials(ssid, password);
-
   Serial.printf("[WIFI] Connecting to: %s\n", ssid.c_str());
   WiFi.begin(ssid.c_str(), password.c_str());
   wifiState = WIFI_CONNECTING;
   wifiRetryCount = 0;
   unsigned long startTime = millis();
-
   while (WiFi.status() != WL_CONNECTED && wifiRetryCount < MAX_WIFI_RETRIES) {
     if (millis() - startTime >= WIFI_TIMEOUT) {
       wifiRetryCount++;
@@ -59,7 +56,6 @@ void initWiFi() {
     }
     delay(500); 
   }
-
   if (WiFi.status() == WL_CONNECTED) {
     wifiState = WIFI_CONNECTED;
     Serial.printf("[WIFI] Connected: %s\n", WiFi.localIP().toString().c_str());
@@ -67,9 +63,8 @@ void initWiFi() {
     initializeBlynk(); 
   } else {
     wifiState = WIFI_IDLE;
-    Serial.println("[WIFI] Connection failed, staying in AP mode");
+    Serial.println("[WIFI] Connection failed, only AP active");
     blynkConnected = false;
   }
 }
-
 #endif

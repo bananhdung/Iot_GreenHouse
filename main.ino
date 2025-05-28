@@ -20,15 +20,18 @@ char packetBuffer[32] = {0};
 int packetSize = 0;
 int countpacket = 0;
 SemaphoreHandle_t sensorMutex = nullptr;
-int mode = 0; 
-bool relayStates[6] = {false};
-unsigned long relayOnTimes[6] = {0};
-unsigned long relayOffTimes[6] = {0};
+int mode = 0;
+bool relayStates[6] = {false, false, false, false, false, false};
+unsigned long relayOnTimes[6] = {0, 0, 0, 0, 0, 0};
+unsigned long relayOffTimes[6] = {0, 0, 0, 0, 0, 0};
+bool manualLocked = false;
+String autoMessages[6] = {"", "", "", "", "", ""};
+RelayAutoState relayAutoStates[6] = {{false, 0}, {false, 0}, {false, 0}, {false, 0}, {false, 0}, {false, 0}};
+bool nightLightingActive = false;
+unsigned long nightLightingStart = 0;
 RelayTimer relayTimers[6] = {{0, 0, 0, 0, false}};
 WiFiState wifiState = WIFI_IDLE;
 unsigned long wifiConnectStart = 0;
-bool manualLocked = false;
-String autoMessages[6] = {""};
 
 String ssid = "Ban Van Tot";
 String password = "nhuquynh20111980";
@@ -57,7 +60,6 @@ void loop() {
     processLoRaPacket(LoRa.available());
   }
   loopRelays();
-  checkRelayTimers();
   server.handleClient();
   static unsigned long lastCheck = 0;
   if (millis() - lastCheck >= 10000) {
